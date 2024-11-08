@@ -156,7 +156,7 @@ def train_without_ray(config):
 
 
     trainer = pl.Trainer(
-        max_epochs=1,
+        max_epochs=100,
         callbacks=[early_atopping_callback, model_checkpoint_callback],
         accelerator="gpu",
         precision="16-mixed",

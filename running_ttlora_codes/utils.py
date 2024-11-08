@@ -20,7 +20,7 @@ os.environ['HF_DATASETS_CACHE'] = custom_cache_dir
 
 
 def load_dataset_(data_name):
-    path = '/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA'+"/data"
+    path = '/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/running_ttlora_codes'+"/data"
     data_path = os.path.join(path, data_name)
     dataset = load_dataset(data_path)
     # dataset = load_dataset("glue", data_name)

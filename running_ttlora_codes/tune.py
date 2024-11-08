@@ -297,7 +297,7 @@ if __name__=="__main__":
     #ray.init(address=f'{args.head_node_ip}:6379')
     args = parser.parse_args()
     #print(args.head_node_ip)
-    if args.head_node_ip is not 'auto':
+    if args.head_node_ip != 'auto':
         ray.init(address=f'{args.head_node_ip}:8088')
     else:
         #ray.init(_temp_dir='/lustre/scratch5/ceodspspectrum/tmp_ray',log_to_driver=False)
