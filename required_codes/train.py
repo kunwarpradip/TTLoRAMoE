@@ -35,21 +35,18 @@ def train_without_ray(config):
     if not torch.cuda.is_available():
         print("Please switch to a GPU machine before running this notebook.")
 
-
+    ### load the dataset using args.data (defaulr: cola) argument from cli 
     dataset = load_dataset_(args.data)
-
-    # print(imdb_dataset)
-    print(dataset)
-
-
-
+    # print(dataset)
 
     tokenized = get_tokenizer("/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/checkpoints/roberta", args.data, dataset)
 
 
 
     train_dataset = tokenized["train"]
-    print(tokenized.keys())
+    # print(tokenized.keys())
+
+    #question: don't we enter mnli only as argument?
     if args.data == "mnli--":
         val_dataset = tokenized["validation_matched"]
     else:
@@ -57,18 +54,20 @@ def train_without_ray(config):
 
 
 
-    ### create train, validation and test dataloader that will be used during training, testing and validation. The dataloader specifies the number of rows in each batch and how many gpus to use
+    ### create train, validation and test dataloader that will be used during training, testing and validation. 
+    # The dataloader specifies the number of rows in each batch and how many gpus to use
     train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=128,
-        shuffle=True,
-        num_workers=4
+        shuffle=True,   #data shuffles at the beginning of each epoch
+        num_workers=4   #separate subprocesses to load data in parallel
     )
 
     val_loader = DataLoader(
         dataset=val_dataset,
         batch_size=128,
         num_workers=4
+        #no need to shuffle the validation data as to get the consistent evaluations
     )
 
 
@@ -92,7 +91,7 @@ def train_without_ray(config):
         param.requires_grad = False
 
     ### print the model structure to see which layers needs to be replaced by loRATT
-    print(model)
+    # print(model)
 
     
 
@@ -102,23 +101,25 @@ def train_without_ray(config):
 
 
     loratt_alpha=config["alpha"]
-    loretta_dropout = 0.05
+    lorett_dropout = 0.05
     loratt_query = True
-    loretta_value = True
+    lorett_value = True
 
-    layers = []
+    # layers = []
 
     # assign_lora = partial(LoRALinearWrapper, rank=lora_r, alpha=lora_alpha)
 
-    assign_loretta = partial(LoRATTLinearWrapper, tt_shape = tt_shape_768_768, tt_rank=tt_rank, alpha=loratt_alpha)
+    #assign_lorett is a function with predefined arguments for LoRATTLinearWrapper
+    #when this is called this acts as a function
+    assign_lorett = partial(LoRATTLinearWrapper, tt_shape = tt_shape_768_768, tt_rank=tt_rank, alpha=loratt_alpha)
 
     for layer in model.roberta.encoder.layer:
         if loratt_query:
-            layer.attention.self.query = assign_loretta(layer.attention.self.query, 0)
-        if loretta_value:
-            layer.attention.self.value = assign_loretta(layer.attention.self.value, 2)
+            layer.attention.self.query = assign_lorett(layer.attention.self.query, 0)
+        if lorett_value:
+            layer.attention.self.value = assign_lorett(layer.attention.self.value, 2)
    
-    print(model)
+    # print(model)
 
     # Check if linear layers are frozen
     for name, param in model.named_parameters():
@@ -129,9 +130,9 @@ def train_without_ray(config):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-    print("Total number of trainable parameters:", count_parameters(model))
+    # print("Total number of trainable parameters:", count_parameters(model))
 
-
+    #for trainig and evaluation
     lightning_model = CustomLightningModule(model,args.data, config["learning_rate"])
 
 
@@ -140,7 +141,7 @@ def train_without_ray(config):
     #         save_top_k=1, mode="max", monitor="val_acc"
     #     )  # save top 1 model
     # ]
-    early_atopping_callback = EarlyStopping(
+    early_stopping_callback = EarlyStopping(
         monitor='val_loss',
         patience=10,
         verbose=True,
@@ -157,7 +158,7 @@ def train_without_ray(config):
 
     trainer = pl.Trainer(
         max_epochs=100,
-        callbacks=[early_atopping_callback, model_checkpoint_callback],
+        callbacks=[early_stopping_callback, model_checkpoint_callback],
         accelerator="gpu",
         precision="16-mixed",
         devices=args.gpus,
@@ -181,9 +182,10 @@ def train_without_ray(config):
     train_acc = trainer.test(lightning_model, dataloaders=train_loader, ckpt_path="best", verbose=False)
     val_acc=trainer.test(lightning_model, dataloaders=val_loader, ckpt_path="best", verbose=False)
 
-    # print(train_acc)
+    # print("training accuracy",train_acc)
+    # print("validation accuracy",val_acc)
 
-    print(val_acc[0]['accuracy']) #because this is what loretta reports
+    print(val_acc[0]['accuracy']) #because this is what lorett reports
     # print(test_loader)
     print(type(val_acc))
     train_params=count_parameters(model)
@@ -218,18 +220,20 @@ def main():
 
     analysis =  train_without_ray(config)
    
-
+    # print(analysis)
 
     #save result of all tasks
     # df = analysis
     df = pd.DataFrame.from_dict(analysis, orient='index',  columns=['value']) #changed
-    filename= f"{args.data}_ray_tune_results_roberta.cvs"
+    print(df)
+    filename= f"{args.data}_ray_tune_results_roberta.csv"
     df.to_csv(filename, index=False)
 
    
 
     #save the best hyperparameters
     best_config = analysis.get('best_config', 'No best config found') #changed
+    print(best_config)
     filename_best= f"{args.data}_best_hyper_roberta.txt"
     with open(filename_best,"w") as f:
         # f.write(str(analysis.best_config))

@@ -20,18 +20,19 @@ os.environ['HF_DATASETS_CACHE'] = custom_cache_dir
 
 
 def load_dataset_(data_name):
-    path = '/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/running_ttlora_codes'+"/data"
+    path = '/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/required_codes'+"/data"
     data_path = os.path.join(path, data_name)
     dataset = load_dataset(data_path)
     # dataset = load_dataset("glue", data_name)
     return dataset
+
 def get_tokenizer(model_path, data_name, dataset):
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     # tokenizer = AutoTokenizer.from_pretrained("microsoft/deberta-base")
 
-    print("Tokenizer input max length:", tokenizer.model_max_length)
-    print("Tokenizer vocabulary size:", tokenizer.vocab_size)
+    # print("Tokenizer input max length:", tokenizer.model_max_length)
+    # print("Tokenizer vocabulary size:", tokenizer.vocab_size)
 
     ### set the special tokens needed during tokenization
     tokenizer.pad_token_id = tokenizer.eos_token_id

@@ -7,16 +7,26 @@ from tensorly.decomposition import tensor_train
 import math
 
 def get_tensor_shape(shape):
-
-    tt_shape = shape
-    return tt_shape
+    # if dim == 4:
+    #     tt_shape_768_2304 = [64, 36, 12, 64]
+    # if dim == 6:
+    #     tt_shape_768_2304 = [32, 12, 3, 4, 12, 32]
+    # if dim == 7:
+    #     tt_shape_768_2304 = [12, 8, 8, 3, 8, 8, 12]
+    # if dim == 8:
+    #     tt_shape_768_2304 = [32, 16, 2, 3, 3, 3, 2, 32]
+    # if dim == 10:
+    #     tt_shape_768_2304 = [32, 4, 2, 2, 2, 3, 3, 3, 2, 32]
+    # if dim == 12:
+    #     tt_shape_768_2304 = [16, 2, 4, 2, 2, 2, 3, 3, 3, 2, 2, 16]
+    tt_shape_768_2304 = shape
+    return tt_shape_768_2304
 
 def get_tt_rank(r, tt_shape):
-    #first core has rank 1 so 
     tt_rank = [1]
     for i in range(len(tt_shape)-1):
         tt_rank.append(r)
-    tt_rank.append(1)   
+    tt_rank.append(1)
     return tt_rank
 
 class LoRATTLinearWrapper(nn.Module):
@@ -26,8 +36,16 @@ class LoRATTLinearWrapper(nn.Module):
             self.base_module = module
             self.flag = flag  ### for future, currently not required
             self.in_features, self.out_features = self.base_module.weight.shape
-
+            # self.in_features = self.base_module.in_features
+            # self.out_features = self.base_module.out_features
+            
+            # print(self.base_module, self.in_features, self.out_features)
+            # for name, param in self.base_module.named_parameters():
+            #     print(f"{name}: {param.shape}")
+            #     print(f"in_features of {name}", self.in_features, "out_features", self.out_features)
+            
             # self.bottleneck = bottleneck
+            self.tt_shape = tt_shape
             self.alpha=alpha
             self.tt_rank = tt_rank
             self.tt_shape = tt_shape
@@ -54,7 +72,7 @@ class LoRATTLinearWrapper(nn.Module):
 
             self.tt_cores.requires_grad= True ### make self.tt_cores trainable
 
-            self.base_module.weight.requires_grad = False ### make base_module's parameters non-trainable
+            # self.base_module.weight.requires_grad = False ### make base_module's parameters non-trainable
 
             ### MAKE THE BIAS NON-TRAINABL
             if self.base_module.bias is not None:
@@ -81,7 +99,6 @@ class LoRATTLinearWrapper(nn.Module):
 
         def init_core(self, *shape):
             std = 1.0 / math.sqrt(shape[1])
-            #generates a tensor shape based on shape variable and assigns value based on normal distribution multiplied by std
             return torch.randn(*shape) * std
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:

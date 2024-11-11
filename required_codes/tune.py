@@ -116,21 +116,21 @@ def train_with_ray(config):
 
 
     loratt_alpha=config["alpha"]
-    loretta_dropout = 0.05
+    lorett_dropout = 0.05
     loratt_query = True
-    loretta_value = True
+    lorett_value = True
 
     layers = []
 
     # assign_lora = partial(LoRALinearWrapper, rank=lora_r, alpha=lora_alpha)
 
-    assign_loretta = partial(LoRATTLinearWrapper, tt_shape = tt_shape_768_768, tt_rank=tt_rank, alpha=loratt_alpha)
+    assign_lorett = partial(LoRATTLinearWrapper, tt_shape = tt_shape_768_768, tt_rank=tt_rank, alpha=loratt_alpha)
 
     for layer in model.roberta.encoder.layer:
         if loratt_query:
-            layer.attention.self.query = assign_loretta(layer.attention.self.query, 0)
-        if loretta_value:
-            layer.attention.self.value = assign_loretta(layer.attention.self.value, 2)
+            layer.attention.self.query = assign_lorett(layer.attention.self.query, 0)
+        if lorett_value:
+            layer.attention.self.value = assign_lorett(layer.attention.self.value, 2)
    
     print(model)
 
@@ -273,7 +273,7 @@ def main():
 
     #save result of all tasks
     df = analysis.results_df
-    filename= f"{args.data}_ray_tune_results_roberta.cvs"
+    filename= f"{args.data}_ray_tune_results_roberta.csv"
     df.to_csv(filename, index=False)
 
     print("Best hyperparameters found were: ", analysis.best_config)
