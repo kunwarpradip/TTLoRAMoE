@@ -39,7 +39,7 @@ def train_without_ray(config):
     dataset = load_dataset_(args.data)
     # print(dataset)
 
-    tokenized = get_tokenizer("/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/checkpoints/roberta", args.data, dataset)
+    tokenized = get_tokenizer("./checkpoints/roberta", args.data, dataset)
 
 
 
@@ -74,13 +74,13 @@ def train_without_ray(config):
 
     if args.data == "mnli":
         model = AutoModelForSequenceClassification.from_pretrained(
-            "/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/checkpoints/roberta", num_labels=3)
+            "./checkpoints/roberta", num_labels=3)
     if args.data == "stsb":
         model = AutoModelForSequenceClassification.from_pretrained(
-            "/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/checkpoints/roberta", num_labels=1)
+            "./checkpoints/roberta", num_labels=1)
     else:
         model = AutoModelForSequenceClassification.from_pretrained(
-            "/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/checkpoints/roberta", num_labels=2)
+            "./checkpoints/roberta", num_labels=2)
     # model = AutoModelForSequenceClassification.from_pretrained(
     #     "microsoft/deberta-base", num_labels=2) ##########
 
