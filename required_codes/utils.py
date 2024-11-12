@@ -12,7 +12,7 @@ import math
 import os
 # custom_cache_dir = "/lustre/vescratch1/ceodspspectrum/cache_hf/
 
-custom_cache_dir = "/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/cache_hf/"
+custom_cache_dir = "../cache_hf/"
 
 #custom_cache_dir = '/lustre/scratch5/ceodspspectrum/tmp_ray/'
 os.environ['HF_DATASETS_CACHE'] = custom_cache_dir
@@ -20,7 +20,7 @@ os.environ['HF_DATASETS_CACHE'] = custom_cache_dir
 
 
 def load_dataset_(data_name):
-    path = '/home/user/Desktop/LLMs/TTLoRAMoE/Running_TTLoRA/required_codes'+"/data"
+    path = "./data"
     data_path = os.path.join(path, data_name)
     dataset = load_dataset(data_path)
     # dataset = load_dataset("glue", data_name)
